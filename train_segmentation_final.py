@@ -1,8 +1,3 @@
-"""
-Compact Offroad Segmentation Training Script
-Same performance as full version, ~50% less code
-"""
-
 import torch
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
@@ -19,8 +14,7 @@ import random
 from torch.cuda.amp import autocast, GradScaler
 import platform
 
-plt.switch_backend('Agg')
-
+# augmentation 
 class DesertAugmentation:
     def __call__(self, img):
         # color jitter 
@@ -91,7 +85,7 @@ class MaskDataset(Dataset):
         mask = convert_mask(Image.open(os.path.join(self.masks_dir, data_id)))
 
         if self.augment:
-            # Geometric augmentations
+            # augmentations
             if random.random() > 0.5:
                 image = transforms.functional.hflip(image)
                 mask = transforms.functional.hflip(mask)
@@ -99,8 +93,7 @@ class MaskDataset(Dataset):
                 angle = random.uniform(-10, 10)
                 image = transforms.functional.rotate(image, angle)
                 mask = transforms.functional.rotate(mask, angle)
-            
-            # Color augmentations
+        
             image = self.desert_aug(image)
 
         if self.transform:
@@ -204,7 +197,7 @@ def evaluate_metrics(model, backbone, data_loader, device, num_classes=10):
 def save_plots(history, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     
-    # Main metrics plot
+    # metric
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     metrics = [('train_loss', 'val_loss', 'Loss'), ('train_iou', 'val_iou', 'IoU'),
                ('learning_rate', None, 'Learning Rate'), ('val_class_iou', None, 'Per-Class IoU')]
@@ -229,7 +222,7 @@ def save_plots(history, output_dir):
     plt.savefig(os.path.join(output_dir, 'training_summary.png'), dpi=150, bbox_inches='tight')
     plt.close()
     
-    # Save text summary
+    # text
     with open(os.path.join(output_dir, 'summary.txt'), 'w') as f:
         f.write(f"Best Val IoU: {max(history['val_iou']):.4f} (Epoch {np.argmax(history['val_iou']) + 1})\n")
         f.write(f"Final Val IoU: {history['val_iou'][-1]:.4f}\n")
@@ -375,4 +368,5 @@ def main():
     print(f"{'='*60}")
 
 if __name__ == "__main__":
+
     main()
